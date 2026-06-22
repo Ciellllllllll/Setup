@@ -1,0 +1,18 @@
+{
+  "name": "@ciellllllllll/setup",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "setup": "bin/setup.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check bin/setup.js && node --check src/cli.js && node --check src/config.js && node --check src/configCommands.js && node --check src/gslibFinder.js && node --check src/nameResolver.js && node --check src/packageInfo.js && node --check src/pathUtils.js && node --check src/projectGenerator.js && node --check src/toolsetCommands.js && node --check src/toolsetDetector.js && node --check src/uninstall.js && node --check src/updateChecker.js && node --check src/updateCheckState.js && node --check src/visualStudioWriter.js"
+  }
+}
