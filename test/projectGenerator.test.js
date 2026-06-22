@@ -25,6 +25,7 @@ test('generates GSLIB Visual Studio project files', async () => {
   const vcxproj = await fs.readFile(path.join(root, 'MyGame.vcxproj'), 'utf8');
   const sln = await fs.readFile(path.join(root, 'MyGame.sln'), 'utf8');
   const mainCpp = await fs.readFile(path.join(root, 'src', 'main.cpp'), 'utf8');
+  const gitignore = await fs.readFile(path.join(root, '.gitignore'), 'utf8');
   assert.match(vcxproj, /Debug\|Win32/);
   assert.match(vcxproj, /Release\|Win32/);
   assert.match(vcxproj, /<PlatformToolset>v143<\/PlatformToolset>/);
@@ -36,8 +37,13 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.match(vcxproj, /PostBuildEvent/);
   assert.match(vcxproj, /<SubSystem>Windows<\/SubSystem>/);
   assert.match(vcxproj, /<EntryPointSymbol>mainCRTStartup<\/EntryPointSymbol>/);
-  assert.equal((vcxproj.match(/<UseOfATL>false<\/UseOfATL>/g) || []).length, 2);
+  assert.equal((vcxproj.match(/<UseOfATL>false<\/UseOfATL>/g) || []).length, 4);
+  assert.equal((vcxproj.match(/<UseOfMfc>false<\/UseOfMfc>/g) || []).length, 4);
+  assert.match(vcxproj, /<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Debug\|Win32'" Label="Configuration">[\s\S]*<UseOfATL>false<\/UseOfATL>[\s\S]*<UseOfMfc>false<\/UseOfMfc>[\s\S]*<\/PropertyGroup>/);
+  assert.match(vcxproj, /<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Release\|Win32'" Label="Configuration">[\s\S]*<UseOfATL>false<\/UseOfATL>[\s\S]*<UseOfMfc>false<\/UseOfMfc>[\s\S]*<\/PropertyGroup>/);
+  assert.match(vcxproj, /<ImportGroup Label="PropertySheets" Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Release\|Win32'">[\s\S]*<\/ImportGroup>\s*<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Debug\|Win32'">\s*<UseOfATL>false<\/UseOfATL>\s*<UseOfMfc>false<\/UseOfMfc>\s*<\/PropertyGroup>/);
   assert.doesNotMatch(vcxproj, /<UseOfATL>Static<\/UseOfATL>|<UseOfATL>Dynamic<\/UseOfATL>|<UseOfATL>true<\/UseOfATL>/);
+  assert.doesNotMatch(vcxproj, /<UseOfMfc>Static<\/UseOfMfc>|<UseOfMfc>Dynamic<\/UseOfMfc>/);
   assert.doesNotMatch(vcxproj, /<SubSystem>Console<\/SubSystem>/);
   assert.doesNotMatch(vcxproj, /WinMainCRTStartup|wWinMainCRTStartup/);
   assert.doesNotMatch(vcxproj, /x64/);
@@ -48,6 +54,7 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.match(sln, /Debug\|x64 = Debug\|x64/);
   assert.match(sln, /Release\|x64 = Release\|x64/);
   assert.ok(sln.indexOf('Debug|x86 = Debug|x86') < sln.indexOf('Debug|x64 = Debug|x64'));
+  assert.match(sln, /GlobalSection\(SolutionConfigurationPlatforms\) = preSolution\r?\n\t\tDebug\|x86 = Debug\|x86\r?\n\t\tRelease\|x86 = Release\|x86\r?\n\t\tDebug\|x64 = Debug\|x64\r?\n\t\tRelease\|x64 = Release\|x64/);
   assert.match(sln, /\.Debug\|x86\.ActiveCfg = Debug\|Win32/);
   assert.match(sln, /\.Debug\|x86\.Build\.0 = Debug\|Win32/);
   assert.match(sln, /\.Release\|x86\.ActiveCfg = Release\|Win32/);
@@ -59,6 +66,7 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.match(mainCpp, /class MyGame : public gslib::Game/);
   assert.match(mainCpp, /return MyGame\(\)\.run\(\);/);
   assert.doesNotMatch(mainCpp, /#include <iostream>|std::cout|TODO|GSLIB project started/);
+  assert.match(gitignore, /^\.vs\/$/m);
 });
 
 test('generates default project name from date', async () => {
@@ -135,12 +143,17 @@ test('templates use GSgame main.cpp and Windows subsystem', async () => {
   assert.match(vcxprojTemplate, /<SubSystem>Windows<\/SubSystem>/);
   assert.match(vcxprojTemplate, /<EntryPointSymbol>mainCRTStartup<\/EntryPointSymbol>/);
   assert.match(vcxprojTemplate, /<UseOfATL>false<\/UseOfATL>/);
+  assert.match(vcxprojTemplate, /<UseOfMfc>false<\/UseOfMfc>/);
+  assert.equal((vcxprojTemplate.match(/<UseOfATL>false<\/UseOfATL>/g) || []).length, 4);
+  assert.equal((vcxprojTemplate.match(/<UseOfMfc>false<\/UseOfMfc>/g) || []).length, 4);
   assert.doesNotMatch(vcxprojTemplate, /<SubSystem>Console<\/SubSystem>/);
   assert.doesNotMatch(vcxprojTemplate, /<UseOfATL>Static<\/UseOfATL>|<UseOfATL>Dynamic<\/UseOfATL>|<UseOfATL>true<\/UseOfATL>/);
+  assert.doesNotMatch(vcxprojTemplate, /<UseOfMfc>Static<\/UseOfMfc>|<UseOfMfc>Dynamic<\/UseOfMfc>/);
   assert.match(slnTemplate, /Debug\|x86 = Debug\|x86/);
   assert.match(slnTemplate, /Release\|x86 = Release\|x86/);
   assert.match(slnTemplate, /Debug\|x64 = Debug\|x64/);
   assert.match(slnTemplate, /Release\|x64 = Release\|x64/);
+  assert.ok(slnTemplate.indexOf('Debug|x86 = Debug|x86') < slnTemplate.indexOf('Debug|x64 = Debug|x64'));
   assert.doesNotMatch(slnTemplate, /Debug\|x64\.Build\.0|Release\|x64\.Build\.0/);
 });
 
