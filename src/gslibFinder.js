@@ -31,7 +31,7 @@ export async function findAndSaveGslib(rootArg, options = {}) {
     return profile;
   }
 
-  const candidates = await findCandidates();
+  const candidates = await findCandidates(options.preferredGslibRoot, options.searchBases);
   if (candidates.length === 0) {
     throw new Error('GSLIB directory was not found.\nSpecify it manually:\n  Setup --find "C:\\path\\to\\gslib_2021"');
   }
@@ -93,8 +93,11 @@ async function isDirectory(dir) {
   }
 }
 
-async function findCandidates() {
-  const bases = [
+async function findCandidates(preferredGslibRoot = 'C:\\gslib_2021', searchBases = null) {
+  const preferred = await validateGslibRoot(preferredGslibRoot);
+  if (preferred) return [preferred];
+
+  const bases = searchBases || [
     process.cwd(),
     path.dirname(process.cwd()),
     path.join(userHome(), 'Desktop'),
@@ -122,8 +125,9 @@ async function findCandidates() {
   const seen = new Set();
   for (const root of roots) {
     const config = await validateGslibRoot(root);
-    if (config && !seen.has(config.gslibRoot)) {
-      seen.add(config.gslibRoot);
+    const key = config?.gslibRoot.toLowerCase();
+    if (config && !seen.has(key)) {
+      seen.add(key);
       candidates.push(config);
     }
   }

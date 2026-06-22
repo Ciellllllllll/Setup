@@ -22,6 +22,8 @@ test('lists profiles with active marker and status', async () => {
   assert.match(output, /\* gslib2021/);
   assert.match(output, /  default/);
   assert.match(output, /status:\s+ok/);
+  assert.match(output, /platform:\s+x86 \(MSBuild: Win32\)/);
+  assert.match(output, /x64:\s+display only/);
   assert.match(output, /toolset:\s+v143/);
   assert.match(output, /vs:\s+Visual Studio 2022 Community/);
 });
@@ -72,6 +74,9 @@ test('doctor reports ok, reports error, and does not modify config', async () =>
   let output = await captureConsole(() => doctor());
   assert.match(output, /Result:\n  ok/);
   assert.match(output, /Toolset status: ok/);
+  assert.match(output, /platform: x86 \(MSBuild: Win32\)/);
+  assert.match(output, /x64: display only/);
+  assert.match(output, /ATL: false/);
   assert.equal(await fs.readFile(configPath(), 'utf8'), before);
 
   const broken = makeConfig({ default: makeProfile(fake, { libDir: path.join(fake, 'missing-lib') }) });

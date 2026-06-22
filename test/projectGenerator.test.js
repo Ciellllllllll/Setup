@@ -23,6 +23,7 @@ test('generates GSLIB Visual Studio project files', async () => {
   await assertFile(path.join(root, '.gitignore'));
 
   const vcxproj = await fs.readFile(path.join(root, 'MyGame.vcxproj'), 'utf8');
+  const sln = await fs.readFile(path.join(root, 'MyGame.sln'), 'utf8');
   const mainCpp = await fs.readFile(path.join(root, 'src', 'main.cpp'), 'utf8');
   assert.match(vcxproj, /Debug\|Win32/);
   assert.match(vcxproj, /Release\|Win32/);
@@ -35,9 +36,25 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.match(vcxproj, /PostBuildEvent/);
   assert.match(vcxproj, /<SubSystem>Windows<\/SubSystem>/);
   assert.match(vcxproj, /<EntryPointSymbol>mainCRTStartup<\/EntryPointSymbol>/);
+  assert.equal((vcxproj.match(/<UseOfATL>false<\/UseOfATL>/g) || []).length, 2);
+  assert.doesNotMatch(vcxproj, /<UseOfATL>Static<\/UseOfATL>|<UseOfATL>Dynamic<\/UseOfATL>|<UseOfATL>true<\/UseOfATL>/);
   assert.doesNotMatch(vcxproj, /<SubSystem>Console<\/SubSystem>/);
   assert.doesNotMatch(vcxproj, /WinMainCRTStartup|wWinMainCRTStartup/);
   assert.doesNotMatch(vcxproj, /x64/);
+  assert.doesNotMatch(vcxproj, /<ProjectConfiguration Include="Debug\|x86">|<ProjectConfiguration Include="Release\|x86">/);
+  assert.doesNotMatch(vcxproj, /<ProjectConfiguration Include="Debug\|x64">|<ProjectConfiguration Include="Release\|x64">/);
+  assert.match(sln, /Debug\|x86 = Debug\|x86/);
+  assert.match(sln, /Release\|x86 = Release\|x86/);
+  assert.match(sln, /Debug\|x64 = Debug\|x64/);
+  assert.match(sln, /Release\|x64 = Release\|x64/);
+  assert.ok(sln.indexOf('Debug|x86 = Debug|x86') < sln.indexOf('Debug|x64 = Debug|x64'));
+  assert.match(sln, /\.Debug\|x86\.ActiveCfg = Debug\|Win32/);
+  assert.match(sln, /\.Debug\|x86\.Build\.0 = Debug\|Win32/);
+  assert.match(sln, /\.Release\|x86\.ActiveCfg = Release\|Win32/);
+  assert.match(sln, /\.Release\|x86\.Build\.0 = Release\|Win32/);
+  assert.match(sln, /\.Debug\|x64\.ActiveCfg = Debug\|Win32/);
+  assert.match(sln, /\.Release\|x64\.ActiveCfg = Release\|Win32/);
+  assert.doesNotMatch(sln, /\.Debug\|x64\.Build\.0|\.Release\|x64\.Build\.0/);
   assert.match(mainCpp, /#include <GSgame\.h>/);
   assert.match(mainCpp, /class MyGame : public gslib::Game/);
   assert.match(mainCpp, /return MyGame\(\)\.run\(\);/);
@@ -109,6 +126,7 @@ test('generates vcxproj using saved dynamic toolset', async () => {
 test('templates use GSgame main.cpp and Windows subsystem', async () => {
   const mainTemplate = await fs.readFile(path.resolve('templates/gslib/main.cpp.tpl'), 'utf8');
   const vcxprojTemplate = await fs.readFile(path.resolve('templates/gslib/vcxproj.tpl'), 'utf8');
+  const slnTemplate = await fs.readFile(path.resolve('templates/gslib/sln.tpl'), 'utf8');
 
   assert.match(mainTemplate, /#include <GSgame\.h>/);
   assert.match(mainTemplate, /class MyGame : public gslib::Game/);
@@ -116,7 +134,14 @@ test('templates use GSgame main.cpp and Windows subsystem', async () => {
   assert.doesNotMatch(mainTemplate, /#include <iostream>|std::cout|TODO|GSLIB project started/);
   assert.match(vcxprojTemplate, /<SubSystem>Windows<\/SubSystem>/);
   assert.match(vcxprojTemplate, /<EntryPointSymbol>mainCRTStartup<\/EntryPointSymbol>/);
+  assert.match(vcxprojTemplate, /<UseOfATL>false<\/UseOfATL>/);
   assert.doesNotMatch(vcxprojTemplate, /<SubSystem>Console<\/SubSystem>/);
+  assert.doesNotMatch(vcxprojTemplate, /<UseOfATL>Static<\/UseOfATL>|<UseOfATL>Dynamic<\/UseOfATL>|<UseOfATL>true<\/UseOfATL>/);
+  assert.match(slnTemplate, /Debug\|x86 = Debug\|x86/);
+  assert.match(slnTemplate, /Release\|x86 = Release\|x86/);
+  assert.match(slnTemplate, /Debug\|x64 = Debug\|x64/);
+  assert.match(slnTemplate, /Release\|x64 = Release\|x64/);
+  assert.doesNotMatch(slnTemplate, /Debug\|x64\.Build\.0|Release\|x64\.Build\.0/);
 });
 
 async function assertFile(file) {

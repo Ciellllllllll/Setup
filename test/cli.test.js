@@ -156,6 +156,7 @@ test('CLI config-path, help, version, list, remove, doctor use new commands', as
   output = await captureConsole(() => runCli(['--help']));
   assert.match(output, /Setup --find/);
   assert.match(output, /Setup --toolsets/);
+  assert.match(output, /Setup update \[--force\]/);
   assert.match(output, /Setup --update-check/);
   assert.doesNotMatch(output, /Setup gslib --find/);
   assert.doesNotMatch(output, /Setup Make gslib/);
@@ -179,6 +180,49 @@ test('CLI reports migration guidance for removed command styles', async () => {
   await assert.rejects(() => runCli(['Make', 'gslib']), /Setup/);
 });
 
+test('CLI uninstall aliases are not treated as project names', async () => {
+  const workspace = await prepareHome();
+  const calls = [];
+  await fs.mkdir(path.dirname(configPath()), { recursive: true });
+
+  const originalCwd = process.cwd();
+  process.chdir(workspace);
+  try {
+    await captureConsole(() => run(['uninstall', '--force'], {
+      runAutomaticUpdateCheck: async () => { throw new Error('unexpected automatic update check'); },
+      uninstall: {
+        packageName: '@ciellllllllll/setup',
+        npmUninstall: (packageName) => {
+          calls.push(packageName);
+          return { status: 0 };
+        }
+      }
+    }));
+  } finally {
+    process.chdir(originalCwd);
+  }
+
+  assert.deepEqual(calls, ['@ciellllllllll/setup']);
+  assert.equal(await exists(path.join(workspace, 'uninstall')), false);
+});
+
+test('CLI dashed uninstall alias is not treated as a project name', async () => {
+  await prepareHome();
+  const calls = [];
+
+  await captureConsole(() => run(['--', 'uninstall', '--force'], {
+    uninstall: {
+      packageName: '@ciellllllllll/setup',
+      npmUninstall: (packageName) => {
+        calls.push(packageName);
+        return { status: 0 };
+      }
+    }
+  }));
+
+  assert.deepEqual(calls, ['@ciellllllllll/setup']);
+});
+
 test('CLI automatic update check runs only for target commands', async () => {
   await prepareHome();
   let calls = 0;
@@ -189,6 +233,15 @@ test('CLI automatic update check runs only for target commands', async () => {
   await captureConsole(() => run(['--version'], { runAutomaticUpdateCheck: async () => { calls += 1; } }));
   await captureConsole(() => run(['--help'], { runAutomaticUpdateCheck: async () => { calls += 1; } }));
   await captureConsole(() => run(['--config-path'], { runAutomaticUpdateCheck: async () => { calls += 1; } }));
+  await captureConsole(() => run(['update'], {
+    runAutomaticUpdateCheck: async () => { calls += 1; },
+    updateCheck: {
+      packageInfo: { packageName: '@ciellllllllll/setup', currentVersion: '0.1.0' },
+      readState: async () => null,
+      writeState: async () => {},
+      fetchLatest: async () => ({ version: '0.1.0' })
+    }
+  }));
   assert.equal(calls, 0);
 });
 
@@ -206,6 +259,32 @@ test('CLI manual update check uses explicit command without automatic check', as
   }));
 
   assert.equal(autoCalls, 0);
+  assert.match(output, /Update available: Setup 0\.1\.0 -> 0\.2\.0/);
+});
+
+test('CLI update command ignores update check cooldown', async () => {
+  await prepareHome();
+  let fetchCalls = 0;
+  const output = await captureConsole(() => run(['update'], {
+    updateCheck: {
+      packageInfo: { packageName: '@ciellllllllll/setup', currentVersion: '0.1.0' },
+      readState: async () => ({
+        version: 1,
+        packageName: '@ciellllllllll/setup',
+        currentVersion: '0.1.0',
+        latestVersion: '0.1.0',
+        lastCheckedAt: new Date().toISOString(),
+        lastResult: 'up-to-date'
+      }),
+      writeState: async () => {},
+      fetchLatest: async () => {
+        fetchCalls += 1;
+        return { version: '0.2.0' };
+      }
+    }
+  }));
+
+  assert.equal(fetchCalls, 1);
   assert.match(output, /Update available: Setup 0\.1\.0 -> 0\.2\.0/);
 });
 

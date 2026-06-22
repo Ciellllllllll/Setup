@@ -54,6 +54,7 @@ Uninstall the CLI and remove saved Setup configuration:
 
 ```powershell
 Setup --uninstall
+Setup uninstall
 Setup --uninstall --force
 ```
 
@@ -72,6 +73,17 @@ Setup --help
 ```
 
 Use `Setup --help` to view additional commands such as profile management, toolset switching, config display, version output, and update checks.
+
+### Update
+
+Check npm for a newer Setup version immediately:
+
+```powershell
+Setup update
+Setup update --force
+```
+
+This only shows the install command when an update is available. It does not update automatically.
 
 ## JSON Configuration
 

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { configPath } from '../src/config.js';
 import { findAndSaveGslib, validateGslibRoot } from '../src/gslibFinder.js';
-import { createFakeGslib, createFakeVisualStudio } from '../test-support/helpers.js';
+import { createFakeGslib, createFakeGslibNamed, createFakeVisualStudio } from '../test-support/helpers.js';
 
 test('validates and saves manually specified fake GSLIB path', async () => {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gslib-setup-'));
@@ -43,6 +43,51 @@ test('saves manually specified fake GSLIB path as named profile', async () => {
 
   assert.equal(saved.activeProfile, 'gslib2021');
   assert.ok(saved.profiles.gslib2021);
+});
+
+test('auto find checks preferred GSLIB root before existing search paths', async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gslib-setup-'));
+  process.env.USERPROFILE = path.join(workspace, 'home');
+  const preferred = await createFakeGslibNamed(workspace, 'preferred-gslib');
+  await createFakeGslibNamed(workspace, 'gslib');
+  const vs = await createFakeVisualStudio(workspace);
+
+  const originalCwd = process.cwd();
+  process.chdir(workspace);
+  try {
+    const config = await findAndSaveGslib(null, {
+      candidateRoots: [vs.root],
+      preferredGslibRoot: preferred,
+      searchBases: [workspace],
+      skipVswhere: true
+    });
+
+    assert.equal(config.gslibRoot, preferred);
+  } finally {
+    process.chdir(originalCwd);
+  }
+});
+
+test('auto find falls back to existing search paths when preferred root is missing', async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gslib-setup-'));
+  process.env.USERPROFILE = path.join(workspace, 'home');
+  const fake = await createFakeGslibNamed(workspace, 'gslib');
+  const vs = await createFakeVisualStudio(workspace);
+
+  const originalCwd = process.cwd();
+  process.chdir(workspace);
+  try {
+    const config = await findAndSaveGslib(null, {
+      candidateRoots: [vs.root],
+      preferredGslibRoot: path.join(workspace, 'missing-gslib'),
+      searchBases: [workspace],
+      skipVswhere: true
+    });
+
+    assert.equal(config.gslibRoot, fake);
+  } finally {
+    process.chdir(originalCwd);
+  }
 });
 
 test('accepts valid GSLIB without bin directory', async () => {

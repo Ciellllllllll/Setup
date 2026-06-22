@@ -6,14 +6,18 @@ Project("{BC8A1FFA-BEE3-4634-8014-F334798102B3}") = "__PROJECT_NAME__", "__PROJE
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		__PROJECT_GUID__.Debug|Win32.ActiveCfg = Debug|Win32
-		__PROJECT_GUID__.Debug|Win32.Build.0 = Debug|Win32
-		__PROJECT_GUID__.Release|Win32.ActiveCfg = Release|Win32
-		__PROJECT_GUID__.Release|Win32.Build.0 = Release|Win32
+		__PROJECT_GUID__.Debug|x86.ActiveCfg = Debug|Win32
+		__PROJECT_GUID__.Debug|x86.Build.0 = Debug|Win32
+		__PROJECT_GUID__.Release|x86.ActiveCfg = Release|Win32
+		__PROJECT_GUID__.Release|x86.Build.0 = Release|Win32
+		__PROJECT_GUID__.Debug|x64.ActiveCfg = Debug|Win32
+		__PROJECT_GUID__.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

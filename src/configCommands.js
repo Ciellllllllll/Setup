@@ -36,7 +36,8 @@ export async function listProfiles() {
     console.log(`  include:  ${profile.includeDir}`);
     console.log(`  lib:      ${profile.libDir}`);
     console.log(`  bin:      ${profile.binDir || 'none'}`);
-    console.log(`  platform: ${profile.platform}`);
+    console.log('  platform: x86 (MSBuild: Win32)');
+    console.log('  x64:      display only');
     console.log(`  toolset:  ${profile.toolset}`);
     console.log(`  vs:       ${profile.visualStudio?.displayName || 'unknown'}`);
     console.log(`  status:   ${status}\n`);
@@ -108,6 +109,9 @@ export async function doctor() {
       console.log('       lib: ok');
       console.log(`       bin: ${profile.binDir ? 'ok' : 'none'}`);
       console.log(`       libraries: ${(profile.libraries || []).join(', ')}`);
+      console.log('       platform: x86 (MSBuild: Win32)');
+      console.log('       x64: display only');
+      console.log('       ATL: false');
       console.log('       Toolset status: ok');
       console.log(`       Toolset selected: ${profile.toolset}`);
       console.log(`       Toolset available: ${(profile.visualStudio?.detectedToolsets || []).join(', ')}`);

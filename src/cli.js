@@ -15,6 +15,20 @@ export async function run(args, options = {}) {
     return;
   }
 
+  if (args[0] === 'update') {
+    await runManualUpdateCheck({ ...options.updateCheck, force: true });
+    return;
+  }
+
+  if (isUninstallCommand(args)) {
+    await uninstallSetup({
+      ...options.uninstall,
+      force: args.includes('--force'),
+      keepConfig: args.includes('--keep-config')
+    });
+    return;
+  }
+
   if (shouldRunAutomaticUpdateCheck(args)) {
     await (options.runAutomaticUpdateCheck || runAutomaticUpdateCheck)(options.updateCheck || {});
   }
@@ -31,14 +45,6 @@ export async function run(args, options = {}) {
 
   if (args[0] === '--version' || args[0] === '-v') {
     console.log((await readPackageInfo()).currentVersion);
-    return;
-  }
-
-  if (args[0] === '--uninstall') {
-    await uninstallSetup({
-      force: args.includes('--force'),
-      keepConfig: args.includes('--keep-config')
-    });
     return;
   }
 
@@ -138,6 +144,10 @@ function normalizeHyphens(args) {
   return args.map((arg) => arg.replaceAll(/[‐‒–—−]/g, '-'));
 }
 
+function isUninstallCommand(args) {
+  return args[0] === '--uninstall' || args[0]?.toLowerCase() === 'uninstall' || (args[0] === '--' && args[1]?.toLowerCase() === 'uninstall');
+}
+
 function removedCommandError(replacement) {
   return new Error(`This command style has been removed.\n\nUse:\n  ${replacement}`);
 }
@@ -158,13 +168,15 @@ Usage:
   Setup --config-path
   Setup --toolsets
   Setup --toolset <toolset>
+  Setup update [--force]
   Setup --update-check [--force]
   Setup --uninstall [--force] [--keep-config]
+  Setup uninstall [--force] [--keep-config]
   Setup --help
   Setup --version`);
 }
 
 export function shouldRunAutomaticUpdateCheck(args) {
-  const excluded = new Set(['--config-path', '--version', '-v', '--help', '-h', '--uninstall', '--update-check']);
+  const excluded = new Set(['--config-path', '--version', '-v', '--help', '-h', '--uninstall', '--update-check', 'update']);
   return !excluded.has(args[0]);
 }
