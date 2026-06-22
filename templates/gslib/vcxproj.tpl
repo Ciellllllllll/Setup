@@ -47,10 +47,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <UseOfATL>false</UseOfATL>
     <UseOfMfc>false</UseOfMfc>
+    <IncludePath>__INCLUDE_DIR__;$(IncludePath)</IncludePath>
+    <LibraryPath>__LIB_DIR__;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <UseOfATL>false</UseOfATL>
     <UseOfMfc>false</UseOfMfc>
+    <IncludePath>__INCLUDE_DIR__;$(IncludePath)</IncludePath>
+    <LibraryPath>__LIB_DIR__;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

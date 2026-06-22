@@ -32,7 +32,10 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.match(vcxproj, /<CharacterSet>MultiByte<\/CharacterSet>/);
   assert.match(vcxproj, /AdditionalIncludeDirectories/);
   assert.match(vcxproj, /AdditionalLibraryDirectories/);
-  assert.match(vcxproj, /gslib\.lib;%\(AdditionalDependencies\)/);
+  assert.match(vcxproj, /<IncludePath>.*fake-gslib\\include;\$\(IncludePath\)<\/IncludePath>/);
+  assert.match(vcxproj, /<LibraryPath>.*fake-gslib\\lib;\$\(LibraryPath\)<\/LibraryPath>/);
+  assert.equal((vcxproj.match(/<AdditionalDependencies>%\(AdditionalDependencies\)<\/AdditionalDependencies>/g) || []).length, 2);
+  assert.doesNotMatch(vcxproj, /gslib\.lib;%\(AdditionalDependencies\)|atls\.lib/);
   assert.match(vcxproj, /src\\main\.cpp/);
   assert.match(vcxproj, /PostBuildEvent/);
   assert.match(vcxproj, /<SubSystem>Windows<\/SubSystem>/);
@@ -41,7 +44,7 @@ test('generates GSLIB Visual Studio project files', async () => {
   assert.equal((vcxproj.match(/<UseOfMfc>false<\/UseOfMfc>/g) || []).length, 4);
   assert.match(vcxproj, /<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Debug\|Win32'" Label="Configuration">[\s\S]*<UseOfATL>false<\/UseOfATL>[\s\S]*<UseOfMfc>false<\/UseOfMfc>[\s\S]*<\/PropertyGroup>/);
   assert.match(vcxproj, /<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Release\|Win32'" Label="Configuration">[\s\S]*<UseOfATL>false<\/UseOfATL>[\s\S]*<UseOfMfc>false<\/UseOfMfc>[\s\S]*<\/PropertyGroup>/);
-  assert.match(vcxproj, /<ImportGroup Label="PropertySheets" Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Release\|Win32'">[\s\S]*<\/ImportGroup>\s*<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Debug\|Win32'">\s*<UseOfATL>false<\/UseOfATL>\s*<UseOfMfc>false<\/UseOfMfc>\s*<\/PropertyGroup>/);
+  assert.match(vcxproj, /<ImportGroup Label="PropertySheets" Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Release\|Win32'">[\s\S]*<\/ImportGroup>\s*<PropertyGroup Condition="'\$\(Configuration\)\|\$\(Platform\)'=='Debug\|Win32'">[\s\S]*<UseOfATL>false<\/UseOfATL>[\s\S]*<UseOfMfc>false<\/UseOfMfc>[\s\S]*<IncludePath>[\s\S]*<\/IncludePath>[\s\S]*<LibraryPath>[\s\S]*<\/LibraryPath>[\s\S]*<\/PropertyGroup>/);
   assert.doesNotMatch(vcxproj, /<UseOfATL>Static<\/UseOfATL>|<UseOfATL>Dynamic<\/UseOfATL>|<UseOfATL>true<\/UseOfATL>/);
   assert.doesNotMatch(vcxproj, /<UseOfMfc>Static<\/UseOfMfc>|<UseOfMfc>Dynamic<\/UseOfMfc>/);
   assert.doesNotMatch(vcxproj, /<SubSystem>Console<\/SubSystem>/);
@@ -115,7 +118,8 @@ test('generates project using saved active JSON profile', async () => {
   assert.match(vcxproj, /JsonConfigTest/);
   assert.match(vcxproj, /fake-gslib\\include/);
   assert.match(vcxproj, /fake-gslib\\lib/);
-  assert.match(vcxproj, /gslib\.lib;%\(AdditionalDependencies\)/);
+  assert.match(vcxproj, /<AdditionalDependencies>%\(AdditionalDependencies\)<\/AdditionalDependencies>/);
+  assert.doesNotMatch(vcxproj, /gslib\.lib;%\(AdditionalDependencies\)|atls\.lib/);
 });
 
 test('generates vcxproj using saved dynamic toolset', async () => {
@@ -144,6 +148,9 @@ test('templates use GSgame main.cpp and Windows subsystem', async () => {
   assert.match(vcxprojTemplate, /<EntryPointSymbol>mainCRTStartup<\/EntryPointSymbol>/);
   assert.match(vcxprojTemplate, /<UseOfATL>false<\/UseOfATL>/);
   assert.match(vcxprojTemplate, /<UseOfMfc>false<\/UseOfMfc>/);
+  assert.match(vcxprojTemplate, /<IncludePath>__INCLUDE_DIR__;\$\(IncludePath\)<\/IncludePath>/);
+  assert.match(vcxprojTemplate, /<LibraryPath>__LIB_DIR__;\$\(LibraryPath\)<\/LibraryPath>/);
+  assert.match(vcxprojTemplate, /<AdditionalDependencies>__ADDITIONAL_DEPENDENCIES__<\/AdditionalDependencies>/);
   assert.equal((vcxprojTemplate.match(/<UseOfATL>false<\/UseOfATL>/g) || []).length, 4);
   assert.equal((vcxprojTemplate.match(/<UseOfMfc>false<\/UseOfMfc>/g) || []).length, 4);
   assert.doesNotMatch(vcxprojTemplate, /<SubSystem>Console<\/SubSystem>/);

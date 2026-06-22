@@ -17,13 +17,11 @@ export async function generateGslibProject(args, options = {}) {
   }
 
   await fs.mkdir(path.join(outputRoot, 'src'));
-  const libs = config.libraries;
   const values = templateValues({
     names,
     config,
     projectGuid: newGuid(),
-    solutionGuid: newGuid(),
-    libs
+    solutionGuid: newGuid()
   });
   const templates = templateDir();
 

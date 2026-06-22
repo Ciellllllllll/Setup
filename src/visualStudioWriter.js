@@ -17,7 +17,7 @@ export async function renderTemplate(templatePath, targetPath, values) {
   await fs.writeFile(targetPath, rendered, 'utf8');
 }
 
-export function templateValues({ names, config, projectGuid, solutionGuid, libs }) {
+export function templateValues({ names, config, projectGuid, solutionGuid }) {
   const binDir = config.binDir || '';
   return {
     SOLUTION_NAME: names.solutionName,
@@ -27,7 +27,7 @@ export function templateValues({ names, config, projectGuid, solutionGuid, libs 
     INCLUDE_DIR: xmlEscape(toWindowsPath(config.includeDir)),
     LIB_DIR: xmlEscape(toWindowsPath(config.libDir)),
     TOOLSET: xmlEscape(config.toolset),
-    ADDITIONAL_DEPENDENCIES: xmlEscape(`${libs.join(';')};%(AdditionalDependencies)`),
+    ADDITIONAL_DEPENDENCIES: '%(AdditionalDependencies)',
     POST_BUILD_COMMAND: xmlEscape(config.binDir ? `if exist "${toWindowsPath(config.binDir)}\\*.dll" xcopy /Y /D "${toWindowsPath(config.binDir)}\\*.dll" "$(OutDir)"` : '')
   };
 }
